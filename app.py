@@ -1,8 +1,10 @@
 import os
+import sys
 import pyautogui
 import time
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import QIcon
+import threading
 
 
 class Clicker(QtWidgets.QWidget):
@@ -10,56 +12,57 @@ class Clicker(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        # Настройки
+        # Settings
         self.delay = 1000
         self.is_running = False
+        self.click_thread = None
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir, "guardian.png")
         style_path = os.path.join(current_dir, "MaterialDark.qss")
 
-        # Создание интерфейса
+        # UI
         self.setWindowTitle("Буль")
         self.layout = QtWidgets.QVBoxLayout()
         icon = QIcon(image_path)
         self.setWindowIcon(icon)
 
-        # Поле для ввода задержки
+        # Input
         self.delay_input = QtWidgets.QLineEdit()
         self.delay_input.setText(str(self.delay))
         self.delay_input.editingFinished.connect(self.set_delay)
         self.layout.addWidget(self.delay_input)
 
-        # Кнопка Старт
+        # Start button
         self.start_button = QtWidgets.QPushButton("Старт")
         self.start_button.clicked.connect(self.start_click)
         self.layout.addWidget(self.start_button)
 
-        # Кнопка Стоп
+        # Stop button
         self.stop_button = QtWidgets.QPushButton("Стоп")
         self.stop_button.clicked.connect(self.stop_click)
         self.layout.addWidget(self.stop_button)
 
-        # Стиль
-        # # style_file = os.path.join("MaterialDark.qss")
-        # style_file = os.path.join("/MaterialDark.qss")
-        # # style_file = 'MaterialDark.qss'
+        # Style
         with open(style_path, 'r') as file:
             style = file.read()
             self.setStyleSheet(style)
 
-        # self.setStyleSheet(
-        #     "QPushButton { background-color: #4CAF50; color: white; border-radius: 5px; padding: 5px; border: none; }"
-        #     "QWidget { background-color: #333; color: white; }")
-
         self.setLayout(self.layout)
 
+        self.show()
+
     def start_click(self):
-        self.is_running = True
-        self.click()
+        if not self.is_running:
+            self.is_running = True
+            self.click_thread = threading.Thread(target=self.click)
+            self.click_thread.start()
 
     def stop_click(self):
-        self.is_running = False
-        self.delay_input.setText(str(self.delay))
+        if self.is_running:
+            self.is_running = False
+            self.delay_input.setText(str(self.delay))
+            self.click_thread.join()
 
     def set_delay(self):
         try:
@@ -68,13 +71,16 @@ class Clicker(QtWidgets.QWidget):
             self.delay = 1000
 
     def click(self):
-        while self.is_running:
-            pyautogui.click()
-            time.sleep(self.delay / 1000)
+        try:
+            while self.is_running:
+                pyautogui.click()
+                time.sleep(self.delay / 1000)
+        except pyautogui.FailSafeException as e:
+            self.is_running = False
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
+    app = QtWidgets.QApplication(sys.argv)
     clicker = Clicker()
     clicker.show()
-    app.exec()
+    sys.exit(app.exec())
