@@ -36,3 +36,27 @@ exe = EXE(
     entitlements_file=None,
     icon=['guardian.png'],
 )
+coll = COLLECT(exe,
+               a.binaries,
+               a.zipfiles,
+               a.datas,
+               strip=False,
+               upx=True,
+               upx_exclude=[],
+               name='click')
+app = BUNDLE(coll,
+             name='click.app',
+             icon='guardian.png',
+             bundle_identifier=None,
+             info_plist={
+                'CFBundleDisplayName': 'click',
+                'CFBundleExecutable': 'GClick',
+                'CFBundleName': 'click',
+                'CFBundleTypeIconFile': 'guardian.png',
+                'CFBundlePackageType': 'APPL',
+                'CFBundleVersionString': '1.1.0',
+                'CFBundleShortVersionString': '1.1.0',
+                'NSPrincipalClass': 'NSApplication',
+                'NSAppleScriptEnabled': False,
+                'NSHighResolutionCapable': True,
+            },)

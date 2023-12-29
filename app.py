@@ -1,3 +1,7 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
 import os
 import sys
 import pyautogui
@@ -30,6 +34,7 @@ class Clicker(QtWidgets.QWidget):
         # Input
         self.delay_input = QtWidgets.QLineEdit()
         self.delay_input.setText(str(self.delay))
+        self.delay_input.setPlaceholderText("ms")
         self.delay_input.editingFinished.connect(self.set_delay)
         self.layout.addWidget(self.delay_input)
 
@@ -77,6 +82,10 @@ class Clicker(QtWidgets.QWidget):
                 time.sleep(self.delay / 1000)
         except pyautogui.FailSafeException as e:
             self.is_running = False
+
+    def closeEvent(self, event):
+        self.stop_click()
+        event.accept()
 
 
 if __name__ == "__main__":
